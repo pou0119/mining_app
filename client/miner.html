@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>マイニング体験</title>
+  
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      text-align: center;
+      margin-top: 50px;
+      background: linear-gradient(135deg, #f0f4f8, #d9e2ec);
+      color: #333;
+      line-height: 1.6;
+    }
+
+    h1, h2 {
+      color: #007bff;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    h1 .fas {
+      margin-right: 10px;
+    }
+
+    p {
+      margin-bottom: 15px;
+    }
+
+    #gameScreen, #endScreen {
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      max-width: 800px;
+      margin: 30px auto;
+      text-align: left;
+    }
+
+    #hashOutput {
+      font-family: 'Cascadia Code', 'Consolas', 'Monaco', monospace;
+      font-size: 0.95em;
+      background-color: #f8f9fa;
+      border: 1px solid #e9ecef;
+      padding: 15px;
+      border-radius: 8px;
+      word-break: break-all;
+      white-space: pre-wrap;
+      margin-bottom: 20px;
+      color: #555;
+    }
+
+    #ranking, #endRanking {
+      margin-top: 40px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      background-color: #fefefe;
+      border-radius: 8px;
+      overflow: hidden; /* 角丸を適用するために必要 */
+    }
+
+    th, td {
+      border: 1px solid #dee2e6;
+      padding: 12px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #e9ecef;
+      color: #495057;
+      font-weight: 600;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f3f7fb;
+    }
+
+    tr:hover {
+      background-color: #e2f0ff;
+      transition: background-color 0.2s ease-in-out;
+    }
+
+    input[type="text"] {
+      padding: 10px 15px;
+      border: 1px solid #ced4da;
+      border-radius: 6px;
+      font-size: 1em;
+      width: 200px;
+      margin-right: 10px;
+      box-sizing: border-box;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      transition: background-color 0.2s ease-in-out, transform 0.1s ease-out;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      background-color: #004085;
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    #statusMessage {
+      font-weight: bold;
+      color: #28a745;
+      margin-bottom: 20px;
+      font-size: 1.1em;
+    }
+
+    #winnerOutput, #finalWinnerOutput {
+      font-size: 1.5em;
+      color: #28a745;
+      font-weight: bold;
+      margin-top: 20px;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+  <h1><i class="fas fa-hammer"></i> マイニング体験</h1>
+  <p>
+    ユーザーネーム:
+    <input type="text" id="username" placeholder="あなたの名前" value="guest" />
+    <button id="connectBtn"><i class="fas fa-plug"></i> 再接続</button>
+  </p>
+  <p id="statusMessage">サーバー未接続</p>
+
+  <div id="gameScreen">
+    <p>
+      <button id="mineBtn" disabled><i class="fas fa-wrench"></i> ハッシュ計算 (1回)</button>
+    </p>
+    <p id="hashOutput">ここにハッシュが表示されます</p>
+    <p id="winnerOutput"></p>
+
+    <div id="ranking">
+      <h2>歴代ランキング（上位10人）</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>順位</th>
+            <th>ユーザーネーム</th>
+            <th>時間 (秒)</th>
+            <th>ハッシュ回数</th>
+          </tr>
+        </thead>
+        <tbody id="rankingBody">
+          <tr><td colspan="4">ランキングデータを待っています...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="endScreen">
+    <h2>ゲーム終了！</h2>
+    <p id="finalWinnerOutput"></p>
+    <h3>今回の参加者ランキング</h3>
+    <div id="endRanking">
+      <table>
+        <thead>
+          <tr><th>順位</th><th>ユーザーネーム</th><th>時間 (秒)</th><th>ハッシュ回数</th></tr>
+        </thead>
+        <tbody id="endRankingBody">
+          <tr><td colspan="4">ランキングデータを待っています...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    let ws;
+    let nonce = 0;
+    let baseData = '';
+    let startTime = null;
+    let gameActive = false;
+    let currentPlayersProgress = new Map();
+
+    // ★ サーバー設定を共通ファイルから読み込むように修正
+    const WS_URL = 'ws://192.0.0.2:8080';
+
+    // Enterキーの長押し防止用フラグ
+    let isEnterKeyDown = false; 
+    
+    // リロード対策用の変数
+    let hashesComputedSinceLastReport = 0; 
+    const REPORT_INTERVAL_HASHES = 20; 
+    let lastComputedHash = '';
+
+    const usernameInput = document.getElementById('username');
+    const connectButton = document.getElementById('connectBtn');
+    const mineButton = document.getElementById('mineBtn');
+    const hashOutput = document.getElementById('hashOutput');
+    const winnerOutput = document.getElementById('winnerOutput');
+    const statusMessage = document.getElementById('statusMessage');
+    const rankingBody = document.getElementById('rankingBody');
+
+    const gameScreen = document.getElementById('gameScreen');
+    const endScreen = document.getElementById('endScreen');
+    const finalWinnerOutput = document.getElementById('finalWinnerOutput');
+    const endRankingBody = document.getElementById('endRankingBody');
+
+    function showScreen(screenId) {
+      gameScreen.style.display = 'none';
+      endScreen.style.display = 'none';
+      document.getElementById(screenId).style.display = 'block';
+    }
+
+    function connectToGame() {
+      const name = usernameInput.value.trim();
+      if (!name) {
+        alert('ユーザーネームを入力してください');
+        return;
+      }
+
+      if (ws && ws.readyState !== WebSocket.CLOSED) {
+        ws.close();
+      }
+
+      ws = new WebSocket(WS_URL);
+
+      ws.onopen = () => {
+        ws.send(JSON.stringify({ type: 'register', username: name }));
+        statusMessage.textContent = `${name} でエントリー中。サーバーからゲーム状態を待機中...`;
+        mineButton.disabled = true;
+        winnerOutput.textContent = '';
+        hashOutput.textContent = 'ここにハッシュが表示されます';
+        currentPlayersProgress.clear();
+        showScreen('gameScreen');
+      };
+
+      ws.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+        const currentUsername = usernameInput.value.trim();
+
+        if (msg.type === 'state') {
+          if (msg.state === 'mining') {
+            statusMessage.textContent = `${currentUsername} でエントリー中。マイニング中...`;
+            gameActive = true;
+            mineButton.disabled = false;
+            if (!startTime) {
+                startTime = Date.now();
+            }
+            winnerOutput.textContent = '';
+            currentPlayersProgress.clear();
+            showScreen('gameScreen');
+          } else if (msg.state === 'idle') {
+            statusMessage.textContent = `${currentUsername} でエントリー中。ゲーム開始を待機中...`;
+            gameActive = false;
+            mineButton.disabled = true;
+            nonce = 0;
+            baseData = '';
+            startTime = null;
+            hashesComputedSinceLastReport = 0;
+            showScreen('gameScreen');
+          } else if (msg.state === 'finished') {
+            statusMessage.textContent = `${currentUsername} でエントリー中。ゲーム終了。`;
+            gameActive = false;
+            mineButton.disabled = true;
+            nonce = 0;
+            baseData = '';
+            startTime = null;
+            hashesComputedSinceLastReport = 0;
+          }
+        } else if (msg.type === 'countdown') {
+          statusMessage.textContent = `${currentUsername} でエントリー中。ゲーム開始まで: ${msg.secondsLeft} 秒`;
+          mineButton.disabled = true;
+          nonce = 0;
+          baseData = '';
+          startTime = null;
+          hashesComputedSinceLastReport = 0;
+        } else if (msg.type === 'winner') {
+          finalWinnerOutput.textContent = `🎉 勝者は ${msg.winner.username} (${msg.winner.time}秒) 🎉`;
+          gameActive = false;
+          mineButton.disabled = true;
+          showScreen('endScreen');
+          updateEndRanking(msg.allParticipants);
+          hashesComputedSinceLastReport = 0;
+        } else if (msg.type === 'ranking') {
+          updateOverallRanking(msg.data);
+        } else if (msg.type === 'game_reset') {
+          statusMessage.textContent = `ユーザーネームを入力してエントリーしよう！`;
+          mineButton.disabled = true;
+          winnerOutput.textContent = '';
+          hashOutput.textContent = 'ここにハッシュが表示されます';
+          nonce = 0;
+          baseData = '';
+          startTime = null;
+          gameActive = false;
+          currentPlayersProgress.clear();
+          showScreen('gameScreen');
+          updateEndRanking();
+          hashesComputedSinceLastReport = 0;
+        } else if (msg.type === 'game_start_info') {
+            nonce = msg.nonce;
+            baseData = msg.baseData;
+            hashOutput.textContent = `初期nonce: ${nonce}, baseData: ${baseData.substring(0, 10)}...`;
+        } else if (msg.type === 'player_progress_update') {
+          currentPlayersProgress.set(msg.username, {
+            hashCount: msg.nonce
+          });
+        }
+      };
+
+      ws.onclose = () => {
+        console.log('サーバーとの接続が切れました');
+        statusMessage.textContent = `サーバー切断。ユーザーネームを入力して再接続してください。`;
+        mineButton.disabled = true;
+        gameActive = false;
+        nonce = 0;
+        baseData = '';
+        startTime = null;
+        winnerOutput.textContent = '';
+        hashOutput.textContent = 'ここにハッシュが表示されます';
+        currentPlayersProgress.clear();
+        hashesComputedSinceLastReport = 0; 
+      };
+
+      ws.onerror = (err) => {
+        console.error('WebSocketエラー:', err);
+        statusMessage.textContent = `接続エラー。サーバーに接続できません。`;
+        mineButton.disabled = true;
+        gameActive = false;
+        nonce = 0;
+        baseData = '';
+        startTime = null;
+        winnerOutput.textContent = '';
+        hashOutput.textContent = 'ここにハッシュが表示されます';
+        currentPlayersProgress.clear();
+        hashesComputedSinceLastReport = 0; 
+      };
+    }
+
+    window.onload = () => {
+      connectToGame();
+    };
+
+    connectButton.onclick = () => {
+      connectToGame();
+    };
+
+    mineButton.onclick = async () => {
+      await mine();
+    };
+
+    async function mine() {
+      if (!gameActive || mineButton.disabled) {
+        return;
+      }
+      
+      const dataToHash = baseData + nonce;
+      const hash = await sha256(dataToHash);
+      lastComputedHash = hash; // 計算したハッシュを毎回保持する
+
+      hashOutput.textContent = `nonce: ${nonce}, hash: ${hash.substring(0, 20)}...`;
+
+      hashesComputedSinceLastReport++;
+
+      // 20回ごとにサーバーに進捗を報告
+      if (hashesComputedSinceLastReport >= REPORT_INTERVAL_HASHES) {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({
+            type: 'player_progress',
+            nonce: nonce + 1, // 次に計算するnonce
+            hash: hash
+          }));
+          hashesComputedSinceLastReport = 0; // カウンターをリセット
+        }
+      }
+
+      if (hash.startsWith('00')) {
+        const timeTaken = ((Date.now() - startTime) / 1000).toFixed(2);
+        ws.send(JSON.stringify({ type: 'win', time: timeTaken, hashCount: nonce + 1 }));
+        mineButton.disabled = true;
+        gameActive = false;
+      }
+
+      nonce++;
+    }
+
+    // Enterキーの長押し防止
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && !usernameInput.matches(':focus') && gameActive && !mineButton.disabled) {
+        event.preventDefault();
+        
+        if (isEnterKeyDown) {
+          return;
+        }
+        
+        isEnterKeyDown = true;
+        mine();
+      }
+    });
+
+    document.addEventListener('keyup', (event) => {
+      if (event.key === 'Enter') {
+        isEnterKeyDown = false;
+      }
+    });
+
+    // ページ離脱時に進捗を報告するイベントリスナー
+    window.addEventListener('beforeunload', () => {
+      // ゲーム中で、かつ未報告の計算がある場合
+      if (gameActive && hashesComputedSinceLastReport > 0) {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          // send()は非同期だが、ページが閉じる前に送信を試みる
+          ws.send(JSON.stringify({
+            type: 'player_progress',
+            nonce: nonce, // 次に計算するべきnonceの値(インクリメント済)を送信
+            hash: lastComputedHash
+          }));
+        }
+      }
+    });
+
+    function updateOverallRanking(data) {
+      rankingBody.innerHTML = '';
+
+      if (!data || data.length === 0) {
+        rankingBody.innerHTML = '<tr><td colspan="4">歴代データがありません</td></tr>';
+        return;
+      }
+
+      data.forEach((row, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${i + 1}</td><td>${row.username}</td><td>${row.time}</td><td>${row.hash_count ?? '-'}</td>`;
+        rankingBody.appendChild(tr);
+      });
+    }
+
+    function updateEndRanking(participantsData = null) {
+      endRankingBody.innerHTML = '';
+
+      if (!participantsData || participantsData.length === 0) {
+        endRankingBody.innerHTML = '<tr><td colspan="4">今回の参加者データがありません</td></tr>';
+        return;
+      }
+
+      participantsData.sort((a, b) => {
+          if (a.time !== null && b.time === null) return -1;
+          if (a.time === null && b.time !== null) return 1;
+          if (a.time !== null && b.time !== null) {
+              return a.time - b.time;
+          }
+          return b.hashCount - a.hashCount;
+      });
+
+      participantsData.forEach((row, i) => {
+        const tr = document.createElement('tr');
+        const rank = i + 1;
+        const timeDisplay = row.time !== null ? row.time : '-';
+        const hashCountDisplay = row.hashCount !== null ? row.hashCount : '-';
+
+        tr.innerHTML = `
+            <td>${rank}</td>
+            <td>${row.username}</td>
+            <td>${timeDisplay}</td>
+            <td>${hashCountDisplay}</td>
+        `;
+        endRankingBody.appendChild(tr);
+
+        if (row.isWinner) {
+            tr.style.fontWeight = 'bold';
+            tr.style.backgroundColor = '#e6ffe6';
+        }
+      });
+    }
+
+    // SHA256ハッシュ関数
+    function sha256(str) {
+      const buf = new TextEncoder('utf-8').encode(str);
+      return crypto.subtle.digest('SHA-256', buf).then(hashBuffer => {
+        // ★★★ ここのタイプミスを修正しました (Uint84Array -> Uint8Array) ★★★
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      });
+    }
+</script>
+</body>
+</html>
