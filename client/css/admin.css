@@ -1,0 +1,161 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    /* モダンなフォントに変更 */
+    text-align: center;
+    margin-top: 50px;
+    background: linear-gradient(to right, #ece9e6, #ffffff);
+    /* 淡いグラデーション背景 */
+    color: #333;
+    /* 文字色を少し濃いグレーに */
+}
+
+h1,
+h2 {
+    color: #2c3e50;
+    /* 見出しの色を強調 */
+    margin-bottom: 20px;
+    font-weight: 600;
+    /* 少し太めのフォント */
+}
+
+p {
+    margin-bottom: 10px;
+}
+
+#gameScreen,
+#endScreen {
+    display: none;
+    background-color: #ffffff;
+    /* 画面背景を白に */
+    padding: 30px;
+    border-radius: 10px;
+    /* 角を丸く */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    /* 軽い影を追加 */
+    max-width: 800px;
+    /* 最大幅を設定 */
+    margin: 50px auto;
+    /* 中央寄せ */
+}
+
+#hashOutput {
+    font-family: 'Roboto Mono', monospace;
+    /* ハッシュ表示は等幅フォントで */
+    font-size: 1em;
+    word-break: break-all;
+    background-color: #f8f9fa;
+    /* 背景色を追加 */
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #dee2e6;
+    margin-bottom: 20px;
+}
+
+#ranking,
+#endRanking {
+    margin-top: 30px;
+}
+
+table {
+    margin: 0 auto;
+    border-collapse: collapse;
+    width: 100%;
+    border-radius: 8px;
+    /* テーブル全体の角も丸く */
+    overflow: hidden;
+    /* 角丸を適用するために必要 */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    /* テーブルにも軽い影 */
+}
+
+th,
+td {
+    border: 1px solid #e0e0e0;
+    /* 罫線の色を淡く */
+    padding: 12px 15px;
+    text-align: left;
+    /* テキストを左寄せに */
+}
+
+th {
+    background: #f1f3f4;
+    /* ヘッダーの背景色 */
+    color: #495057;
+    /* ヘッダーの文字色 */
+    font-weight: 600;
+}
+
+tr:nth-child(even) {
+    background-color: #fcfcfc;
+    /* 偶数行に背景色 */
+}
+
+tr:hover {
+    background-color: #e9ecef;
+    /* ホバー時の背景色 */
+}
+
+input[type="text"] {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1em;
+    width: 200px;
+    /* 幅を調整 */
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 1em;
+    cursor: pointer;
+    background-color: #007bff;
+    /* ボタンの基本色 */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    /* ホバー・クリックアニメーション */
+    margin: 5px;
+    /* ボタン間のスペース */
+}
+
+button:hover {
+    background-color: #0056b3;
+    transform: translateY(-1px);
+    /* 少し上に移動 */
+}
+
+button:active {
+    background-color: #004085;
+    transform: translateY(0);
+    /* 押下時に戻る */
+}
+
+button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+#statusMessage {
+    font-weight: bold;
+    color: #007bff;
+    /* ステータスメッセージの色 */
+    margin-bottom: 20px;
+    font-size: 1.1em;
+}
+
+#winnerOutput,
+#finalWinnerOutput {
+    font-size: 1.8em;
+    /* 勝者表示を大きく */
+    color: #28a745;
+    /* 緑色で勝利を強調 */
+    font-weight: bold;
+    margin-top: 20px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+    /* 影を追加 */
+}
+
+.hidden {
+    display: none;
+}
