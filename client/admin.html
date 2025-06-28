@@ -131,15 +131,14 @@
     <tbody id="playersTableBody">
       <tr><td colspan="4">プレイヤー情報を待っています...</td></tr> </tbody>
   </table>
-
+  <script src="config.js"></script> 
   <script>
     let ws;
     // プレイヤーの状態を管理するためのMap。キーはユーザー名、値は { nonce, hash, connected }
     let players = new Map();
 
-    const SERVER_IP = '192.0.0.2'; // ここでIPアドレスを定義します
-    const SERVER_PORT = '8080';
-    const WS_URL = `ws://${SERVER_IP}:${SERVER_PORT}`;
+    // config.jsから読み込んだ設定を使う
+    const WS_URL = `ws://${SERVER_CONFIG.IP}:${SERVER_CONFIG.PORT}`;
 
     const adminNameInput = document.getElementById('adminName');
     const connectBtn = document.getElementById('connectBtn');

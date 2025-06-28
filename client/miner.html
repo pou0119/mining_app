@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>マイニング体験</title>
   
+  
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -197,6 +198,7 @@
       </table>
     </div>
   </div>
+  <script src="config.js"></script>
 
   <script>
     let ws;
@@ -206,8 +208,8 @@
     let gameActive = false;
     let currentPlayersProgress = new Map();
 
-    // ★ サーバー設定を共通ファイルから読み込むように修正
-    const WS_URL = 'ws://192.0.0.2:8080';
+    // config.jsから読み込んだ設定を使う
+    const WS_URL = `ws://${SERVER_CONFIG.IP}:${SERVER_CONFIG.PORT}`;
 
     // Enterキーの長押し防止用フラグ
     let isEnterKeyDown = false; 
