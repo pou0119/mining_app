@@ -1,4 +1,3 @@
-
 let ws;
 let nonce = 0;
 let baseData = '';
@@ -41,6 +40,7 @@ function connectToGame() {
         alert('ユーザーネームを入力してください');
         return;
     }
+    document.getElementById('crack-container').innerHTML = '';
 
     if (ws && ws.readyState !== WebSocket.CLOSED) {
         ws.close();
@@ -61,6 +61,7 @@ function connectToGame() {
     ws.onmessage = (event) => {
         const msg = JSON.parse(event.data);
         const currentUsername = usernameInput.value.trim();
+        const crackContainer = document.getElementById('crack-container'); // ひび割れコンテナを取得
 
         if (msg.type === 'state') {
             if (msg.state === 'mining') {
@@ -105,6 +106,7 @@ function connectToGame() {
             showScreen('endScreen');
             updateEndRanking(msg.allParticipants);
             hashesComputedSinceLastReport = 0;
+            crackContainer.innerHTML = ''; // ★変更点：勝者が決まったらひび割れを消去
         } else if (msg.type === 'ranking') {
             updateOverallRanking(msg.data);
         } else if (msg.type === 'game_reset') {
@@ -120,6 +122,7 @@ function connectToGame() {
             showScreen('gameScreen');
             updateEndRanking();
             hashesComputedSinceLastReport = 0;
+            crackContainer.innerHTML = ''; // ★変更点：ゲームリセット時にひび割れを消去
         } else if (msg.type === 'game_start_info') {
             nonce = msg.nonce;
             baseData = msg.baseData;
@@ -176,6 +179,35 @@ async function mine() {
     if (!gameActive || mineButton.disabled) {
         return;
     }
+
+    const crackContainer = document.getElementById('crack-container');
+
+    // 現在のひび割れの数が20個以上なら、一番古いものを削除
+    if (crackContainer.children.length >= 20) {
+        crackContainer.removeChild(crackContainer.firstChild);
+    }
+
+    // --- ここから下はひび割れを生成する元のコードと同じ ---
+
+    const crack = document.createElement('img');
+
+    crack.src = 'images/crack.png'; // 画像のパス
+    crack.className = 'crack-image'; // CSSクラスを適用
+
+    // ランダムな位置、サイズ、角度を設定してリアル感を出す
+    const size = 150 + Math.random() * 100; // 150pxから250pxのランダムなサイズ
+    crack.style.width = `${size}px`;
+    crack.style.height = 'auto';
+
+    // 画面の少し内側にランダムに配置
+    crack.style.top = `${Math.random() * 80}%`;
+    crack.style.left = `${Math.random() * 80}%`;
+
+    // ランダムな角度
+    crack.style.transform = `rotate(${Math.random() * 360}deg)`;
+
+    // コンテナにひび割れ画像を追加
+    crackContainer.appendChild(crack);
 
     const dataToHash = baseData + nonce;
     const hash = await sha256(dataToHash);

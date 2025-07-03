@@ -12,7 +12,7 @@ db.serialize(() => {
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT,
     time REAL,
-    hash_count INTEGER, -- ★ここを追加：ハッシュ計算回数
+    hash_count INTEGER,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`, (err) => {
     if (err) console.error("歴代勝者DB作成エラー:", err);

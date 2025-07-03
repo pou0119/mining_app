@@ -143,3 +143,43 @@ button:disabled {
 .hidden {
   display: none;
 }
+
+/* ひび割れコンテナのスタイル */
+#crack-container {
+  position: fixed;
+  /* 画面に固定 */
+  top: 0;
+  left: 0;
+  width: 100vw;
+  /* 画面全体の幅 */
+  height: 100vh;
+  /* 画面全体の高さ */
+  overflow: hidden;
+  /* コンテナからはみ出た画像を隠す */
+  pointer-events: none;
+}
+
+/* ひび割れ画像自体のスタイル */
+.crack-image {
+  position: absolute;
+  /* コンテナ内の絶対位置に配置 */
+  width: 200px;
+  /* ひび割れの基本サイズ */
+  animation: fade-in 0.3s ease-in;
+  /* フワッと表示されるアニメーション */
+  user-select: none;
+  /* 画像を選択できないようにする */
+}
+
+/* フワッと表示されるアニメーションの定義 */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
