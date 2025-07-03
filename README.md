@@ -20,7 +20,7 @@ WebSocketとNode.jsを利用した、リアルタイム対戦型のブロック�
 
 1.  **リポジトリをクローン**
     ```sh
-    git clone [https://github.com/pou0119/mining_app.git](https://github.com/pou0119/mining_app.git)
+    git clone https://github.com/pou0119/mining_app.git
     cd mining_app
     ```
 
