@@ -40,7 +40,6 @@ function broadcast(message) {
 
 // 歴代ランキングを特定のWSクライアントに送信する関数
 function sendHistoricalRanking(ws) {
-  // ★ここを変更：hash_count も取得
   db.all(`SELECT username, time, hash_count FROM historical_winners ORDER BY time ASC LIMIT 10`, (err, rows) => {
     if (err) {
       console.error("歴代ランキング取得エラー:", err);
