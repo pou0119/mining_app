@@ -4,6 +4,7 @@ let baseData = '';
 let startTime = null;
 let gameActive = false;
 let currentPlayersProgress = new Map();
+let failedMineTimeout = null;
 
 // config.jsから読み込んだ設定を使う
 const WS_URL = `ws://${SERVER_CONFIG.IP}:${SERVER_CONFIG.PORT}`;
@@ -109,6 +110,7 @@ function connectToGame() {
             stopScramblingEffect();
             hashOutput.textContent = `SYSTEM LOCK IN ${msg.secondsLeft} SECONDS...`;
         } else if (msg.type === 'winner') {
+            clearTimeout(failedMineTimeout);
             finalWinnerOutput.textContent = `🎉 勝者は ${msg.winner.username} (${msg.winner.time}秒) 🎉`;
             gameActive = false;
             mineButton.disabled = true;
@@ -119,6 +121,7 @@ function connectToGame() {
         } else if (msg.type === 'ranking') {
             updateOverallRanking(msg.data);
         } else if (msg.type === 'game_reset') {
+            clearTimeout(failedMineTimeout);
             statusMessage.textContent = `ユーザーネームを入力してエントリーしよう！`;
             mineButton.disabled = true;
             winnerOutput.textContent = '';
@@ -126,6 +129,7 @@ function connectToGame() {
             nonce = 0;
             baseData = '';
             startTime = null;
+            isAnimating = false;
             gameActive = false;
             currentPlayersProgress.clear();
             showScreen('gameScreen');
@@ -214,13 +218,15 @@ async function mine() {
         hashOutput.textContent = hash.substring(0, 20) + '...';
         document.body.classList.add('flash-red');
 
-        setTimeout(() => {
+        clearTimeout(failedMineTimeout); 
+
+        failedMineTimeout = setTimeout(() => {
             document.body.classList.remove('flash-red');
             mineButton.disabled = false;
             if (gameActive) {
                 startScramblingEffect();
             }
-        }, 300);
+        }, 100);
     }
 
     hashesComputedSinceLastReport++;
